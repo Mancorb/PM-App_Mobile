@@ -1,0 +1,81 @@
+<Manager>:
+    id: screen_manager
+    loginScreen:loginScreen
+    createScreen:createScreen
+
+    LoginLayout:
+        id:loginScreen
+        name: "loginPage"
+        manager: screen_manager
+    
+    Creator:
+        id:createScreen
+        name: "createPage"
+        manager: screen_manager
+
+<LoginLayout>:
+
+    key:key
+
+    canvas.before:
+    
+        #Backgorund color
+        Color:
+            rgb : 1,1,1
+        Rectangle:
+            pos:self.pos
+            size: self.size
+        
+        #Top design
+        Color:
+            rgb: 175/255,211/255,230/255
+        RoundedRectangle:
+            pos: 0,self.center_y
+            size:self.width,self.center_y
+
+    BoxLayout:
+        orientation:'vertical'
+        size: root.width, root.height
+        
+        Label:
+            text :"@SafeSoft"
+            font_size: 40
+            size_hint: 1,0.3
+    
+        Label:
+            text:"Please insert your\n password to continue:"
+            font_size: 20
+            valign:"middle"
+            size_hint: 1,0.5
+            color: 0 , 0 , 0 , 1
+
+        AnchorLayout:
+            anchor_x: 'center'
+            
+            TextInput:
+                id:key
+                multiline:False
+                size_hint: .6,.1
+                valign:"middle"
+        
+        Button:
+            text:'Login'
+            font_size: 30
+            color: 0.7 , 0.8 , 0.4 , 1
+            size_hint: 1,0.15
+            on_press: root.obtainPass()
+
+<Creator>:
+    user:user
+    site:site
+
+    BoxLayout:
+        orientation:'vertical'
+
+        TextInput:
+            id:user
+            text:'text'
+        TextInput:
+            id:site
+            text:'text'
+        
