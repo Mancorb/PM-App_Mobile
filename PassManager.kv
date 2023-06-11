@@ -14,9 +14,7 @@
         manager: screen_manager
 
 <LoginLayout>:
-
     key:key
-
     canvas.before:
     
         #Backgorund color
@@ -54,6 +52,7 @@
             
             TextInput:
                 id:key
+                text:'text'
                 multiline:False
                 size_hint: .6,.1
                 valign:"middle"
@@ -71,11 +70,57 @@
 
     BoxLayout:
         orientation:'vertical'
+        spacing: 5
 
-        TextInput:
-            id:user
-            text:'text'
-        TextInput:
-            id:site
-            text:'text'
+        Label:
+            text:'Generate Password'
+            font_size: "30dp"
+            size_hint: 1,.4
+        BoxLayout:
+            orientation: "vertical"
+            GridLayout:
+                rows:4
+                cols:1
+                row_force_default: True
+                size_hint_y: None
+                height: self.minimum_height
+                width: self.minimum_width
+                row_default_height: "35dp"
+                row_default_width: "50dp"
+
+                Label:
+                    text:'Site'
+                    font_size: "20dp"
+
+                TextInput:
+                    id:site
+                    size_hint: .5,.1
+                
+                Label:
+                    text:'Username'
+                    font_size:"20dp"
+                TextInput:
+                    id:user
+                    size_hint: .5,.1
+            GridLayout:
+                cols: 2
+                size_hint:1,.2
+                CheckBox:
+                    on_active: root.checkbox_click()
+                    size_hint_x: None
+                    
+    
+                Label:
+                    text: "Encripted"
+                    font_size: 20
+                    size_hint_x: None
+                    width: 10
+                
+            Button:
+                text:'Create'
+                font_size: 25
+                size_hint: 1,.2
+                on_press: root.InsertPassword()
+        
+
         
