@@ -3,24 +3,15 @@ from kivy.config import Config
 from kivy.properties import ObjectProperty
 from kivy.uix.screenmanager import ScreenManager, Screen,NoTransition
 import sqlite3
+import plyer
 from random import randint
 
 Config.set('graphics', 'width', '300')
 
 class DBAdministrator():
-    
-    def connecting(self):
-        """Connect to database and save conection and cursor on variables
-
-        Args:
-            database (str, optional): name of the database to conect to. Defaults to "repo.db".
-        """
-        try:
-            conection = sqlite3.connect("repo.db")
-            cursor = conection.cursor()
-            return (conection,cursor)
-        except Exception as e:
-            print ("Error, ",e)
+    def __init__(self):
+        self.con = sqlite3.connect("repo.db")
+        self.cursor = self.con.cursor()
 
     def execute(self,command):
         """Run a command in the database
@@ -28,39 +19,41 @@ class DBAdministrator():
         Args:
             command (string):sqlite command.
         """
-        sq = self.connecting()
-        conection = sq[0]
-        cursor = sq[1]
         try:
-            cursor.execute(command)
-            conection.commit()
+            self.cursor.execute(command)
+            self.con.commit()
             
-            return cursor
         except Exception as e:
-            print(f"--Error:{e}")
-            self.disconnect(conection)
+            print(f"--Error:{e}\nConextion terminated")
+            self.con.close()
 
-    def disconnect(self,conection):
+    def disconnect(self):
         """Disconect from the database
         """
-        conection.close()
+        self.con.close()
     
 
 
 class Creator(Screen):
-    encript = ObjectProperty(False)
-    user = ObjectProperty(False)
-    site = ObjectProperty(False)
+    encript = ObjectProperty(False) #flag to encript password
+    user = ObjectProperty(False) #store username input
+    site = ObjectProperty(False) #store website name input
+    alert = ObjectProperty(False) #notification
     
     def checkbox_click(self):
+        """Flip the state of the flag
+        """
         self.encript = not self.encript
     
     def InsertPassword(self):
+        dba = DBAdministrator()
+
         siteInfo = self.site.text
         userInfo = self.user.text
+        
         if len(siteInfo) > 0  and len(userInfo) >0:
             password = self.CreatePass()
-            id = self.getID()
+            id = self.getID(dba)
 
             if self.encript == True:
                 en = 1
@@ -68,26 +61,41 @@ class Creator(Screen):
                 en = 0
 
             dba.execute(f"INSERT INTO passwords VALUES('{id}','{siteInfo}','{userInfo}','{password}','{en}')")
+            dba.disconnect()
+
+            self.site.text = ""
+            self.user.text =""
+            plyer.notification.notify(title="Update", message=f"Inserted password for {siteInfo}")
+
     
-    def getID(self):
-        cursor = dba.execute("SELECT COUNT (*) FROM passwords")
-        count = cursor.fetchall()
+    def getID(self,dba):
+        """Find corresponding id for insertion
 
-        print(len(count))
+        Args:
+            dba (DBAdministrator object): object that has conection to the database
 
-        if len(count) == 0:
+        Returns:
+            int: id for the insertion
+        """
+        dba.execute("SELECT COUNT (*) FROM passwords")
+        count = dba.cursor.fetchall()
+
+        if count[0][0] == 0:
             return 1
         
         else:
-            cursor = dba.execute("SELECT id FROM passwords ORDER BY id")
-            data = cursor.fetchall()
+            dba.execute("SELECT id FROM passwords ORDER BY id")
+            data = dba.cursor.fetchall()
             number = 1
 
-            for num in data:
-                if num != number and num > number:
-                    return number
-                else:
+            for i in range(len(data)):
+                id = data[i][0]
+                if id == number:
                     number +=1
+                else:
+                    return number
+            
+            return number
 
     def CreatePass(self):
         lowerLetters=['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
@@ -122,7 +130,7 @@ class Creator(Screen):
             #Adds selected character to the final string
             final+=temp
         return final
-
+        
 
 #stuff for login page
 class LoginLayout(Screen):
@@ -155,7 +163,5 @@ class PassManager(App):
         return m
 
 if __name__ == '__main__':
-   dba = DBAdministrator()
    app = PassManager()
    app.run()
-   dba.disconnect()
